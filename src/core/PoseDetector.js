@@ -1,5 +1,6 @@
 // MediaPipe Pose 封装：加载 wasm + 模型，detectForVideo，关键点一阶低通平滑
-import { FilesetResolver, PoseLandmarker } from '@mediapipe/tasks-vision';
+// 注意：@mediapipe/tasks-vision 体积较大（~180KB），改为动态导入，
+// 避免在菜单页也阻塞整个模块图导致黑屏
 
 // WASM 走本地 public/wasm（已从 node_modules 拷贝，避免 CDN 卡住导致黑屏）
 const WASM_URL = '/wasm';
@@ -59,6 +60,9 @@ export class PoseDetector {
     if (this.landmarker || this.loading) return;
     this.loading = true;
     this.lastError = null;
+
+    // 0. 动态加载 @mediapipe/tasks-vision（体积大，仅在需要时加载）
+    const { FilesetResolver, PoseLandmarker } = await import('@mediapipe/tasks-vision');
 
     // 1. 加载 wasm（本地，几乎不会失败）
     let vision;
