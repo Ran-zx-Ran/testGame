@@ -5,6 +5,20 @@ import { AudioManager } from './core/Audio.js';
 import { Camera } from './core/Camera.js';
 import { PoseDetector } from './core/PoseDetector.js';
 
+// 全局错误兜底：任何 JS 错误都显示在页面上，避免黑屏无提示
+window.addEventListener('error', (e) => {
+  const app = document.getElementById('app');
+  if (app && !app.innerHTML) {
+    app.innerHTML = `<div style="position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#ff6b6b;font-family:monospace;padding:20px;text-align:center;z-index:9999;">
+      <h2>页面加载出错</h2>
+      <pre style="max-width:90vw;overflow:auto;">${(e.error?.stack || e.message || String(e)).replace(/</g,'&lt;')}</pre>
+    </div>`;
+  }
+});
+window.addEventListener('unhandledrejection', (e) => {
+  console.error('Unhandled rejection:', e.reason);
+});
+
 // 全局共享单例
 const app = document.getElementById('app');
 export const ctx = {
@@ -24,10 +38,12 @@ const router = new Router(app, {
 ctx.router = router;
 
 // 启动到菜单
-router.go('menu');
-
-// 注册 Service Worker 的位置留空——H5 体感游戏不强依赖 PWA
-// 如需离线可后续补 sw.js
+router.go('menu').catch(err => {
+  app.innerHTML = `<div style="position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#ff6b6b;font-family:monospace;padding:20px;text-align:center;z-index:9999;">
+    <h2>启动失败</h2>
+    <pre style="max-width:90vw;overflow:auto;">${(err?.stack || err?.message || String(err)).replace(/</g,'&lt;')}</pre>
+  </div>`;
+});
 
 // 防止 iOS 双指缩放、双击放大
 let lastTouchEnd = 0;
