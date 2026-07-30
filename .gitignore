@@ -1,0 +1,28 @@
+# Dependencies and package-manager cache
+node_modules/
+.pnpm-store/
+
+# Build and test output
+dist/
+test-results/
+playwright-report/
+coverage/
+*.tsbuildinfo
+
+# Local environment files
+.env
+.env.*
+!.env.example
+
+# Runtime logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Editor and operating-system files
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
