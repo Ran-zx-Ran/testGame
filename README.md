@@ -13,7 +13,25 @@ pnpm install
 pnpm dev
 ```
 
-电脑本地使用 `http://localhost:5173` 即可获得摄像头权限。手机访问时，浏览器要求 HTTPS 安全上下文；应将 `pnpm build` 生成的 `dist` 部署到 HTTPS 静态站点，再通过系统投屏功能投到电视。
+电脑本地使用 `http://localhost:5173` 即可获得摄像头权限。局域网手机访问 `http://电脑IP:5173` 时不属于安全上下文，iPhone Safari 不会开放摄像头与麦克风 API。
+
+### iPhone 局域网调试
+
+在启动服务的 Windows 电脑执行：
+
+```powershell
+pnpm https:setup
+pnpm dev:https
+```
+
+`https:setup` 会为电脑当前局域网 IPv4 地址生成仅保存在 `.certs` 中的本地开发证书。`dev:https` 启动后，终端会显示“手机证书下载”和“手机游戏地址”，然后在 iPhone 上完成以下设置：
+
+1. 使用 Safari 打开终端显示的 `http://电脑IP:5174/local-dev-ca.cer`，下载描述文件。
+2. 打开“设置 > 通用 > VPN 与设备管理”，安装 `Motion Arcade Local Development CA`。
+3. 打开“设置 > 通用 > 关于本机 > 证书信任设置”，为该证书启用完全信任。
+4. 使用 Safari 打开终端显示的 `https://电脑IP:5173`，再点击“开启摄像头与语音”。
+
+iPhone 和电脑必须处于同一局域网，Windows 防火墙需要允许 Node.js 使用专用网络。若电脑局域网 IP 改变，请重新执行 `pnpm https:setup` 并在手机上重新安装新证书。正式部署时不应使用本地开发证书，应将 `pnpm build` 生成的 `dist` 部署到具有可信 HTTPS 证书的静态站点。
 
 ## 控制方式
 

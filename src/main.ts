@@ -324,6 +324,14 @@ class MotionArcadeApp {
 
   /** 请求摄像头、启动语音并执行全身校准。 */
   private async enableMotion(): Promise<void> {
+    /** 权限弹层中的失败提示。 */
+    const permissionError = this.getElement<HTMLElement>('[data-permission-error]');
+    permissionError.classList.add('is-hidden');
+    if (!window.isSecureContext) {
+      permissionError.textContent = '当前地址不是安全的 HTTPS 页面，iPhone 无法申请摄像头和麦克风权限。请改用电脑提供的 HTTPS 地址访问。';
+      permissionError.classList.remove('is-hidden');
+      return;
+    }
     await this.audio.unlock();
     this.setModal('permission', false);
     this.setModal('calibration', true);
@@ -338,7 +346,8 @@ class MotionArcadeApp {
     if (!started) {
       this.setModal('calibration', false);
       this.setModal('permission', true);
-      this.getElement('[data-permission-error]').classList.remove('is-hidden');
+      permissionError.textContent = '无法访问设备。请在浏览器设置中允许摄像头与麦克风权限，或使用触控进入。';
+      permissionError.classList.remove('is-hidden');
       return;
     }
     this.getElement('[data-camera-dock]').classList.remove('is-hidden');
@@ -472,6 +481,7 @@ class MotionArcadeApp {
       loadingModel: '加载识别模型',
       ready: '体感已就绪',
       noBody: '请保持全身入镜',
+      insecure: '需要 HTTPS 访问',
       denied: '摄像头被拒绝',
       error: '体感不可用',
     };

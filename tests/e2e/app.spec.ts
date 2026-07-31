@@ -34,6 +34,17 @@ test('摄像头被拒绝时保留触控入口', async ({ page }) => {
   await page.goto('/');
   await page.getByTestId('fruit-game').click();
   await page.getByRole('button', { name: '开启摄像头与语音' }).click();
-  await expect(page.getByText('无法访问设备，仍可使用触控和鼠标游玩。')).toBeVisible();
+  await expect(page.getByText('无法访问设备。请在浏览器设置中允许摄像头与麦克风权限，或使用触控进入。')).toBeVisible();
+  await expect(page.getByRole('button', { name: '使用触控进入' })).toBeVisible();
+});
+
+test('非 HTTPS 地址会明确提示 iPhone 无法申请设备权限', async ({ page }) => {
+  await page.addInitScript(() => {
+    Object.defineProperty(window, 'isSecureContext', { configurable: true, value: false });
+  });
+  await page.goto('/');
+  await page.getByTestId('fruit-game').click();
+  await page.getByRole('button', { name: '开启摄像头与语音' }).click();
+  await expect(page.getByText('当前地址不是安全的 HTTPS 页面，iPhone 无法申请摄像头和麦克风权限。请改用电脑提供的 HTTPS 地址访问。')).toBeVisible();
   await expect(page.getByRole('button', { name: '使用触控进入' })).toBeVisible();
 });

@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
+    "https:setup": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/setup-lan-https.ps1",
+    "dev:https": "vite --config vite.https.config.ts",
     "build": "tsc -b && vite build",
     "preview": "vite preview --host 0.0.0.0",
     "typecheck": "tsc -b --pretty false",

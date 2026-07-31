@@ -3,7 +3,7 @@ import { ActionDetector } from './ActionDetector';
 import { PoseController } from './PoseController';
 
 /** 摄像头与体感识别状态。 */
-export type InputStatus = 'idle' | 'requesting' | 'loadingModel' | 'ready' | 'noBody' | 'denied' | 'error';
+export type InputStatus = 'idle' | 'requesting' | 'loadingModel' | 'ready' | 'noBody' | 'insecure' | 'denied' | 'error';
 
 /** 输入状态监听器。 */
 export type InputStatusListener = (status: InputStatus) => void;
@@ -95,6 +95,10 @@ export class InputController {
 
   /** 请求摄像头并启动本地姿态识别。 */
   async startCamera(video: HTMLVideoElement, overlayCanvas: HTMLCanvasElement): Promise<boolean> {
+    if (!window.isSecureContext) {
+      this.notifyStatus('insecure');
+      return false;
+    }
     if (!navigator.mediaDevices?.getUserMedia) {
       this.notifyStatus('error');
       return false;
@@ -119,14 +123,15 @@ export class InputController {
     } catch (error) {
       /** 浏览器返回的媒体或模型错误名称。 */
       const errorName = error instanceof DOMException ? error.name : '';
-      this.notifyStatus(errorName === 'NotAllowedError' ? 'denied' : 'error');
-      this.stopCamera();
+      /** 需要在清理资源后保留的失败状态。 */
+      const failureStatus: InputStatus = errorName === 'NotAllowedError' ? 'denied' : 'error';
+      this.stopCamera(failureStatus);
       return false;
     }
   }
 
-  /** 关闭摄像头、模型和识别循环。 */
-  stopCamera(): void {
+  /** 关闭摄像头、模型和识别循环，并广播清理后的状态。 */
+  stopCamera(status: InputStatus = 'idle'): void {
     cancelAnimationFrame(this.animationFrameId);
     this.animationFrameId = 0;
     this.mediaStream?.getTracks().forEach((track) => track.stop());
@@ -135,7 +140,7 @@ export class InputController {
     this.poseController?.close();
     this.poseController = null;
     this.actionDetector.reset();
-    this.notifyStatus('idle');
+    this.notifyStatus(status);
   }
 
   /** 要求玩家保持全身入镜三秒并完成校准。 */
